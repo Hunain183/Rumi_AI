@@ -27,6 +27,7 @@ Think **Friday from Iron Man** — a loyal, intelligent AI that's always ready, 
 
 ```
 main.py              ← Start here. The main loop: listen → think → act → respond.
+gui.py               ← Desktop GUI. Chat + system monitor + memory viewer.
 config.py            ← All settings (LLM, voice, safety) in one place.
 
 rumi/
@@ -34,6 +35,11 @@ rumi/
 ├── memory.py        ← SQLite persistent memory (conversations + facts)
 ├── display.py       ← Beautiful Rich terminal UI
 ├── voice.py         ← Speech recognition + text-to-speech (optional)
+├── gui/             ← Desktop GUI components (PyQt6)
+│   ├── main_window.py ← Main application window
+│   ├── widgets.py     ← Chat bubbles, system monitor, memory viewer
+│   ├── worker.py      ← Background thread for the brain
+│   └── styles.py      ← Dark theme + cyan accents
 └── tools/           ← Drop-in skill modules (auto-discovered!)
     ├── __init__.py   ← Auto-registers every tool in this folder
     ├── system.py     ← Shell commands, open apps, system info
@@ -88,6 +94,7 @@ python main.py --base-url http://your-api:8000/v1 --model your-model
 
 ### 3. Start RUMI
 
+#### Terminal Mode
 ```bash
 # Text mode (default)
 python main.py
@@ -98,6 +105,18 @@ python main.py --voice
 # Custom settings
 python main.py --model llama3.1 --creator "Tony"
 ```
+
+#### Desktop GUI
+```bash
+python gui.py
+```
+
+The GUI features:
+- **Chat Interface** — Beautiful message bubbles on the left
+- **System Monitor** — Real-time CPU, RAM, disk, and temperature (right panel)
+- **Memory Viewer** — Stored facts and conversation history
+- **Dark Theme** — Cyan accents matching RUMI's aesthetic
+- **Non-blocking** — Brain runs on background threads, UI stays responsive
 
 ## What RUMI Can Do
 
@@ -145,6 +164,34 @@ def my_tool(arg1: str) -> str:
 ```
 
 Restart RUMI and she instantly knows the new skill. No configuration needed.
+
+## Desktop GUI
+
+RUMI includes a modern PyQt6-based desktop application with:
+
+### Features
+- **Chat Interface** — Beautiful message bubbles with cyan accents
+- **System Monitor** — Real-time stats (CPU, RAM, disk, temperature)
+- **Memory Viewer** — See all stored facts and conversation history
+- **Dark Theme** — Elegant dark mode matching RUMI's aesthetic
+- **Non-blocking UI** — Brain runs on background threads, keeping the app responsive
+- **One-click Launch** — Just run `python gui.py`
+
+### GUI Architecture
+The GUI separates concerns cleanly:
+- `main_window.py` — Main application window, event handling
+- `widgets.py` — Reusable UI components (chat bubbles, monitors, tables)
+- `worker.py` — Background thread runner for the brain (keeps UI responsive)
+- `styles.py` — Centralized dark theme + colors
+
+Message flow:
+1. User types → `ChatWindow.send_message` signal
+2. Main window catches signal → creates `BrainWorker` thread
+3. Worker runs `brain.think()` in background
+4. When done → emits `response_received` signal
+5. Main window updates UI (adds message to chat, refreshes memory viewer)
+
+All without blocking the UI!
 
 ## Configuration
 

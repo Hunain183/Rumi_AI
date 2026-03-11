@@ -3,6 +3,10 @@
 openai>=1.0.0             # LLM connection (works with Ollama, OpenAI, etc.)
 rich>=13.0.0              # Beautiful terminal UI
 
+# Desktop GUI (optional)
+PyQt6>=6.0.0              # Desktop application framework
+PyQt6-WebEngine>=6.0.0    # Web rendering engine
+
 # Voice (optional — RUMI works in text mode without these)
 SpeechRecognition>=3.10.0 # Microphone input
 pyttsx3>=2.90             # Text-to-speech output
