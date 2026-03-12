@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QTextEdit, QFrame, QGridLayout, QDialog,
     QTableWidget, QTableWidgetItem, QApplication, QListWidget, QListWidgetItem,
 )
-from PyQt6.QtCore import Qt, QSize, pyqtSignal, QTimer
+from PyQt6.QtCore import Qt, QSize, pyqtSignal, QTimer, QPointF
 from PyQt6.QtGui import QFont, QColor, QTextCursor, QPainter, QPen, QPainterPath, QPolygonF
 import audioop
 import math
@@ -307,7 +307,7 @@ class SparklineWidget(QWidget):
         for idx, value in enumerate(self._history):
             x = rect.left() + (idx * step)
             y = rect.bottom() - ((value / 100.0) * rect.height())
-            points.append(Qt.QPointF(x, y))
+            points.append(QPointF(x, y))
 
         line_pen = QPen(self._color, 2)
         painter.setPen(line_pen)
