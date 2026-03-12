@@ -20,6 +20,8 @@ LLM_BASE_URL = os.getenv("RUMI_BASE_URL", "http://localhost:11434/v1")
 LLM_API_KEY  = os.getenv("RUMI_API_KEY", "ollama")  # For Ollama, any string works
 LLM_TEMPERATURE = 0.7
 LLM_MAX_TOKENS  = 4096
+LLM_REQUEST_TIMEOUT = float(os.getenv("RUMI_REQUEST_TIMEOUT", "20"))
+LLM_MAX_RETRIES = int(os.getenv("RUMI_MAX_RETRIES", "0"))
 
 # ─── Voice ───────────────────────────────────────────────────
 VOICE_ENABLED = os.getenv("RUMI_VOICE", "false").lower() == "true"

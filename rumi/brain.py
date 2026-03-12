@@ -69,6 +69,8 @@ class Brain:
         self.client = OpenAI(
             base_url=config.LLM_BASE_URL,
             api_key=config.LLM_API_KEY,
+            timeout=config.LLM_REQUEST_TIMEOUT,
+            max_retries=config.LLM_MAX_RETRIES,
         )
         self.model = config.LLM_MODEL
 
@@ -106,6 +108,9 @@ class Brain:
                     max_tokens=config.LLM_MAX_TOKENS,
                 )
             except Exception as e:
+                if self._is_connectivity_error(e):
+                    return self._format_llm_unreachable_error(e)
+
                 # If tool-calling fails (unsupported model), retry without tools
                 try:
                     response = self.client.chat.completions.create(
@@ -115,7 +120,9 @@ class Brain:
                         max_tokens=config.LLM_MAX_TOKENS,
                     )
                 except Exception as e2:
-                    return f"I couldn't reach the LLM. Check your config. Error: {e2}"
+                    if self._is_connectivity_error(e2):
+                        return self._format_llm_unreachable_error(e2)
+                    return f"LLM request failed: {e2}"
 
             choice = response.choices[0]
             message = choice.message
@@ -185,3 +192,41 @@ class Brain:
         """Keep conversation within the context window limit."""
         if len(self.conversation) > self.max_history:
             self.conversation = self.conversation[-self.max_history:]
+
+    def _is_connectivity_error(self, error: Exception) -> bool:
+        """Detect network/service reachability problems."""
+        text = str(error).lower()
+        markers = [
+            "connection",
+            "failed to connect",
+            "timed out",
+            "timeout",
+            "refused",
+            "name or service not known",
+            "temporary failure in name resolution",
+            "nodename nor servname provided",
+        ]
+        return any(marker in text for marker in markers)
+
+    def _format_llm_unreachable_error(self, error: Exception) -> str:
+        """Return actionable guidance for unreachable LLM endpoints."""
+        provider = (config.LLM_PROVIDER or "").lower()
+
+        if provider == "ollama":
+            return (
+                "I couldn't reach the local Ollama server. "
+                "Start Ollama and make sure the model exists.\n"
+                "Windows quick checks:\n"
+                "1) Open Ollama app (or run: ollama serve)\n"
+                "2) Pull model: ollama pull "
+                f"{self.model}\n"
+                "3) Confirm endpoint: http://localhost:11434/v1\n"
+                f"Error: {error}"
+            )
+
+        return (
+            "I couldn't reach the LLM endpoint. "
+            "Check API key/base URL/network and try again.\n"
+            f"Current base URL: {config.LLM_BASE_URL}\n"
+            f"Error: {error}"
+        )
