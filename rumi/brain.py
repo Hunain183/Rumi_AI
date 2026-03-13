@@ -211,6 +211,16 @@ class Brain:
     def _format_llm_unreachable_error(self, error: Exception) -> str:
         """Return actionable guidance for unreachable LLM endpoints."""
         provider = (config.LLM_PROVIDER or "").lower()
+        err_text = str(error).lower()
+
+        if "timed out" in err_text or "timeout" in err_text:
+            return (
+                "The LLM request timed out. Ollama is likely busy loading the model or generating slowly.\n"
+                "Try again once (first reply is often slower), or increase timeout:\n"
+                "set RUMI_REQUEST_TIMEOUT=180\n"
+                "You can also use a smaller model for faster replies.\n"
+                f"Error: {error}"
+            )
 
         if provider == "ollama":
             return (
